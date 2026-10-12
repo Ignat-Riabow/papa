@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Книга воспоминаний // Дорогому Папе</title>
+  <style>
+    :root {
+      --paper: #fcfbf7;
+      --paper-border: #dcd4c5;
+      --gold: #9c7a3c;
+      --text-dark: #2b2520;
+      --text-muted: #6e655c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      color: var(--text-dark);
+      background-color: #1c221e;
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Фоновый пейзаж на CSS */
+    .nature-bg {
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at 50% 30%, rgba(247, 215, 148, 0.25) 0%, transparent 60%),
+        linear-gradient(180deg, #1b2838 0%, #2d4a43 45%, #41372b 80%, #1a1612 100%);
+      z-index: 1;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 960px;
+      padding: 20px 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Книжный лист */
+    .book-card {
+      width: 100%;
+      background: var(--paper);
+      border: 1px solid var(--paper-border);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+      border-radius: 2px;
+      padding: 36px 32px;
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .book-card.active {
+      display: flex;
+    }
+
+    /* Стартовый экран */
+    .card-start {
+      max-width: 420px;
+      padding: 44px 24px;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chapter-tag {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 28px;
+      text-align: center;
+      color: var(--text-dark);
+      margin-bottom: 18px;
+      font-weight: normal;
+    }
+
+    .card-desc {
+      font-size: 18px;
+      line-height: 1.7;
+      color: #4a433d;
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 30px auto;
+    }
+
+    /* Кнопки */
+    .btn {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--text-dark);
+      font-family: 'Georgia', serif;
+      font-size: 15px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 12px 28px;
+      cursor: pointer;
+      display: inline-block;
+      transition: all 0.25s ease;
+      text-align: center;
+    }
+
+    .btn:hover {
+      background: var(--gold);
+      color: #ffffff;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #ffffff;
+    }
+
+    .btn-gold:hover {
+      background: #84652f;
+    }
+
+    .btn-start {
+      font-size: 17px;
+      padding: 16px 36px;
+      letter-spacing: 2px;
+    }
+
+    /* Раскладка страницы с фото/gif и текстом */
+    .album-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 28px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .photo-frame {
+      width: 100%;
+      height: 380px;
+      background: #ece6dc;
+      border: 1px solid var(--paper-border);
+      padding: 8px;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.05);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-fallback {
+      display: none;
+      text-align: center;
+      padding: 16px;
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    .album-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 380px;
+    }
+
+    .photo-caption {
+      font-size: 20px;
+      line-height: 1.65;
+      color: #38312b;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--paper-border);
+    }
+
+    .photo-caption::first-letter {
+      font-size: 36px;
+      float: left;
+      line-height: 0.85;
+      padding-right: 6px;
+      color: var(--gold);
+    }
+
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--paper-border);
+    }
+
+    /* Вкладка личного поздравления */
+    .letter-box {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: left;
+      background: #fbf9f4;
+      border: 1px solid var(--paper-border);
+      padding: 28px 24px;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.02);
+    }
+
+    .letter-paragraph {
+      font-size: 19px;
+      line-height: 1.8;
+      color: #38312b;
+      margin-bottom: 16px;
+    }
+
+    .letter-highlight {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--gold);
+      margin-top: 14px;
+    }
+
+    /* Сетка достижений */
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+      margin: 24px 0;
+      text-align: left;
+    }
+
+    .achievement-item {
+      background: #f7f4ed;
+      border: 1px solid var(--paper-border);
+      padding: 20px 20px;
+    }
+
+    .achievement-num {
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .achievement-title {
+      font-size: 19px;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .achievement-text {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--text-muted);
+    }
+
+    /* Мобильная адаптация */
+    @media (max-width: 768px) {
+      .book-card {
+        padding: 24px 16px;
+      }
+      .card-start {
+        padding: 36px 16px;
+      }
+      .album-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+      .photo-frame {
+        height: 250px;
+      }
+      .album-content {
+        min-height: unset;
+      }
+      .card-title {
+        font-size: 22px;
+      }
+      .photo-caption {
+        font-size: 17px;
+      }
+      .letter-paragraph {
+        font-size: 17px;
+      }
+      .page-nav .btn {
+        flex: 1;
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nature-bg"></div>
+  <div class="vignette"></div>
+
+  <div class="container">
+
+    <!-- 1. НАЧАЛЬНЫЙ ЭКРАН (ТОЛЬКО КНОПКА) -->
+    <div class="book-card card-start active" id="screenStart">
+      <div>
+        <button class="btn btn-gold btn-start" onclick="startAlbum()">Нажми на кнопку</button>
+      </div>
+    </div>
+
+    <!-- 2. СТРАНИЦА АЛЬБОМА (ФОТО 1 - 18, 8-Й КАДР - GIF) -->
+    <div class="book-card" id="screenAlbum">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--paper-border); padding-bottom: 10px;">
+        <div class="chapter-tag" style="margin-bottom: 0;" id="pageTag">Кадр 1</div>
+        <div style="font-size: 14px; font-style: italic; color: var(--text-muted);" id="pageCounter">1 из 18</div>
+      </div>
+
+      <div class="album-grid">
+        <div class="photo-frame">
+          <img id="mainPhoto" src="1.jpg" alt="Изображение" onerror="onPhotoError()" />
+          <div class="photo-fallback" id="photoMissingText">
+            Файл не найден.<br>
+            Положите рядом файл: <b id="missingFileName" style="color:var(--gold);">1.jpg</b>
+          </div>
+        </div>
+
+        <div class="album-content">
+          <div>
+            <h2 class="card-title" style="text-align: left; font-size: 22px; margin-bottom: 8px;" id="headingTitle">Первые шаги</h2>
+            <div class="photo-caption" id="captionText">
+              На этой фотографии ты еще маленький, но все-таки не настолько, как твоя сестра.
+            </div>
+          </div>
+
+          <div class="page-nav">
+            <button class="btn" id="prevBtn" onclick="goPrev()">← Назад</button>
+            <button class="btn btn-gold" id="nextBtn" onclick="goNext()">Вперед →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. ВКЛАДКА ЛИЧНОГО ПОЗДРАВЛЕНИЯ -->
+    <div class="book-card" id="screenLetter">
+      <div class="chapter-tag">Личное послание</div>
+      <h2 class="card-title">Дорогому отцу</h2>
+      
+      <div class="letter-box">
+        <p class="letter-paragraph">
+          Хоть я иногда перечу тебе и язвлю, но ты для меня — самое ценное и мой самый главный пример того, кем я должен быть.
+        </p>
+        <p class="letter-paragraph">
+          Ты не сдаешься ни в какой беде, делаешь всегда всё сам и ни на кого не рассчитываешь.
+        </p>
+        <p class="letter-paragraph letter-highlight">
+          Папа, хоть я это редко и говорю, но я тебя люблю. С днем рождения!
+        </p>
+      </div>
+
+      <div style="text-align: center; margin-top: 28px;">
+        <button class="btn btn-gold" onclick="showAchievements()">Смотреть заслуги →</button>
+      </div>
+    </div>
+
+    <!-- 4. ГЛАВНАЯ СТРАНИЦА: ЗАСЛУГИ ОТЦА -->
+    <div class="book-card" id="screenAchievements">
+      <div class="chapter-tag">Главная страница</div>
+      <h2 class="card-title" style="text-align: center;">Главные Заслуги Отца</h2>
+      <p class="card-desc" style="margin-bottom: 10px;">
+        Фундамент, на котором держится наш дом и семья:
+      </p>
+
+      <div class="achievements-grid" id="achievementsList"></div>
+
+      <div style="text-align: center; margin-top: 14px;">
+        <button class="btn" onclick="restartToBeginning()">↺ Пересмотреть с начала</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const albumData = [
+      {
+        file: '1.jpg',
+        title: 'Первые шаги',
+        desc: 'На этой фотографии ты еще маленький, но все-таки не настолько, как твоя сестра.'
+      },
+      {
+        file: '2.jpg',
+        title: 'Перед большим путем',
+        desc: 'Здесь ты еще не знаешь, что тебе предстоит в твоем далеком будущем.'
+      },
+      {
+        file: '3.jpg',
+        title: 'Новая жизнь',
+        desc: 'Тут появляется на свет твой первый сын — Илюша.'
+      },
+      {
+        file: '4.jpg',
+        title: 'Первый очаг',
+        desc: 'Вот ты с ним еще на первой квартире.'
+      },
+      {
+        file: '5.jpg',
+        title: 'Родные люди',
+        desc: 'Куда же без дядьки своего родного!'
+      },
+      {
+        file: '6.jpg',
+        title: 'Время летит',
+        desc: 'А тут Илюша уже подрос.'
+      },
+      {
+        file: '7.jpg',
+        title: 'Верная дружба',
+        desc: 'Тут твой давний друг.'
+      },
+      {
+        // 8-Й КАДР В ФОРМАТЕ GIF
+        file: '8.gif',
+        title: 'Повелитель',
+        desc: 'Повелитель: спокойный авторитет, уверенный взгляд и хозяин положения.'
+      },
+      {
+        file: '9.jpg',
+        title: 'Второй сын',
+        desc: 'А тут уже появляется твой второй сын — Игнат.'
+      },
+      {
+        file: '10.jpg',
+        title: 'Два богатыря',
+        desc: 'Игнат и Илья — посмотри, какие уже большие!'
+      },
+      {
+        file: '11.jpg',
+        title: 'Банда в сборе',
+        desc: 'Вся банда в сборе: Илья, Игнат и бессменный главарь — папа.'
+      },
+      {
+        file: '12.jpg',
+        title: 'Братское плечо',
+        desc: 'А вот и братан твой родной.'
+      },
+      {
+        file: '13.jpg',
+        title: 'Школьные годы',
+        desc: 'Здесь твои архаровцы пошли уже вдвоем в школу.'
+      },
+      {
+        file: '14.jpg',
+        title: 'Новый город',
+        desc: 'А тут ты уже живешь в Гомеле, переезжая из Витебска.'
+      },
+      {
+        file: '15.jpg',
+        title: 'Студенчество Ильи',
+        desc: 'Твой первый сын уже учится на первом курсе.'
+      },
+      {
+        file: '16.jpg',
+        title: 'Студенчество Игната',
+        desc: 'А вот уже и второй сын пошел в студенты — тоже на первом курсе!'
+      },
+      {
+        file: '17.jpg',
+        title: 'Главное счастье',
+        desc: 'Как же можно было забыть про самое главное твое счастье с именем Ира!'
+      },
+      {
+        file: '18.jpg',
+        title: 'Пройденный путь',
+        desc: 'Вот тут ты уже знаешь, что произошло по сравнению с первой фотографией. А что будет дальше — тебе только предстоит узнать.'
+      }
+    ];
+
+    const achievements = [
+      { name: 'Воспитание двух сыновей', desc: 'Вырастил и воспитал Илью и Игната достойными, честными и крепкими парнями.' },
+      { name: 'Золотые руки', desc: 'Умение самостоятельно отремонтировать, построить и решить любой хозяйственный вопрос.' },
+      { name: 'Главная опора семьи', desc: 'Человек, за чьим плечом всегда спокойно, уверенно и тепло.' }
+    ];
+
+    let currentIndex = 0;
+
+    function switchScreen(hideId, showId) {
+      document.getElementById(hideId).classList.remove('active');
+      document.getElementById(showId).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startAlbum() {
+      switchScreen('screenStart', 'screenAlbum');
+      renderPhoto(0);
+    }
+
+    function renderPhoto(index) {
+      currentIndex = index;
+      const item = albumData[index];
+
+      const isGif = item.file.toLowerCase().endsWith('.gif');
+      document.getElementById('pageTag').innerText = isGif ? `Кадр ${index + 1} (GIF)` : `Кадр ${index + 1}`;
+      document.getElementById('pageCounter').innerText = `${index + 1} из ${albumData.length}`;
+      document.getElementById('headingTitle').innerText = item.title;
+      document.getElementById('captionText').innerText = item.desc;
+
+      const img = document.getElementById('mainPhoto');
+      const fallback = document.getElementById('photoMissingText');
+      const missingName = document.getElementById('missingFileName');
+
+      missingName.innerText = item.file;
+      fallback.style.display = 'none';
+      img.style.display = 'block';
+      img.src = item.file;
+
+      document.getElementById('prevBtn').disabled = (index === 0);
+      document.getElementById('prevBtn').style.opacity = (index === 0) ? '0.4' : '1';
+
+      const nextBtn = document.getElementById('nextBtn');
+      if (index === albumData.length - 1) {
+        nextBtn.innerText = 'К поздравлению ►';
+      } else {
+        nextBtn.innerText = 'Вперед →';
+      }
+    }
+
+    function onPhotoError() {
+      document.getElementById('mainPhoto').style.display = 'none';
+      document.getElementById('photoMissingText').style.display = 'block';
+    }
+
+    function goPrev() {
+      if (currentIndex > 0) {
+        renderPhoto(currentIndex - 1);
+      }
+    }
+
+    function goNext() {
+      if (currentIndex < albumData.length - 1) {
+        renderPhoto(currentIndex + 1);
+      } else {
+        switchScreen('screenAlbum', 'screenLetter');
+      }
+    }
+
+    function showAchievements() {
+      const container = document.getElementById('achievementsList');
+      container.innerHTML = '';
+      achievements.forEach((ach, i) => {
+        const div = document.createElement('div');
+        div.className = 'achievement-item';
+        div.innerHTML = `
+          <div class="achievement-num">Заслуга №${i + 1}</div>
+          <div class="achievement-title">${ach.name}</div>
+          <div class="achievement-text">${ach.desc}</div>
+        `;
+        container.appendChild(div);
+      });
+      switchScreen('screenLetter', 'screenAchievements');
+    }
+
+    function restartToBeginning() {
+      currentIndex = 0;
+      switchScreen('screenAchievements', 'screenStart');
+    }
+  </script>
+</body>
+</html>
